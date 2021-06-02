@@ -59,7 +59,7 @@
         height:100vh;
         width:200px;
         position: fixed;
-        margin: 1rem;
+        margin-left: 20px;
     }
     li{
         margin: 10px 10px 10px 10px;
