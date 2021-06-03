@@ -80,6 +80,6 @@
         display: grid;
         place-items: center;
         margin-top: 50px;
-        margin-left: 200px;
+        margin-left: 210px;
     }
 </style>
