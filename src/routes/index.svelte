@@ -1,7 +1,57 @@
 <script>
     import {searchHistory } from '$lib/stores'
+    let autoCompleteData=[]
+    let autoCompleteList=[]
     let searchText='';
-     async function handleSearch(e){
+    function getAutoCompleteDate(data, word){
+        return Promise.resolve().then(()=>{
+            // console.log(data[5].word)
+            if (data.length<=0) return []
+            // console.log(data)
+            let returnList=[]
+            for(let i = 0;i<data.length;i++){
+                // if(word.toUpperCase()== data[i].word.toUpperCase()){
+                if ((data[i].word.substr(0, word.length).toUpperCase() == word.toUpperCase())&& returnList.length<6) {
+                    // console.log(word.toUpperCase()==data[i].word.toUpperCase())
+                   returnList =[...returnList, data[i].word] 
+                }
+            }
+            return returnList;
+        })
+    }
+    function organiseData( previousdata, data){
+        return Promise.resolve().then(()=>{
+        if (data.length<=0) return previousdata
+        //  let returnList =[...previousdata, ...data]   
+        //  console.log(data)
+        //  for(let i =0; i < data.length;i++){
+        //      returnList = [...returnList, data[i]]
+        //  }
+        //  console.log(returnList)
+         return [...previousdata,...data]
+        })
+    }
+    
+    async function autoComplete(e){
+            if(searchText<1) {
+                autoCompleteList=[]
+                return
+            }
+            autoCompleteList = await getAutoCompleteDate(autoCompleteData, searchText)  
+            // console.log(autoCompleteList)
+            if (autoCompleteList.length<=0){
+                console.log('get called')
+                const fetchData = await fetch(`https://api.datamuse.com/words?sp=${searchText}*`)
+                const textData = await fetchData.text();
+                const jsonData = await JSON.parse(textData)
+                // autoCompleteData = [...autoCompleteData,jsonData]
+                autoCompleteData = await organiseData(autoCompleteData, jsonData)
+                autoCompleteList = await getAutoCompleteDate(autoCompleteData,searchText)
+                // console.log(autoCompleteData)
+            }
+            console.log(autoCompleteData.length)
+    }
+    async function handleSearch(e){
         if (searchText.length<=0) return
         searchText = searchText.trim();
         if (searchText.toUpperCase() === $searchHistory[$searchHistory.length -1]?.toUpperCase()){
@@ -12,17 +62,14 @@
             return
         }
         $searchHistory = [...$searchHistory,searchText]
-        console.log($searchHistory)
-    }
-    function handleClear(){
-        searchText=''
+        // console.log($searchHistory)
     }
 </script>
 <div class="mainnav">
     <div class="inputdiv">
-        <input class="transparent" type="text" bind:value={searchText}>
+        <input class="transparent" type="text" bind:value={searchText} on:input={autoComplete}>
         {#if $searchHistory.length>0}
-            <button class="transparent" on:click={handleClear}>
+            <button class="transparent" on:click={e=>{searchText=''}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
                     <path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
                 </svg>
@@ -41,7 +88,41 @@
         </button>
     </div>
 </div>
+{#if autoCompleteList.length>0}
+<div class="autoCompleteElement">
+        {#each autoCompleteList as data}
+            <div class="autoCompleteItems">
+                <span>
+                    <b>{data.substr(0, searchText.length)}</b>{data.substr(searchText.length)}
+                </span>
+            </div> 
+        {/each}
+    </div>
+{/if}
 <style>
+    .autoCompleteItems{
+    border-top: 1px solid #e8eaed;
+    margin: 0 14px;
+    padding-bottom: 4px;
+    font-size: 19px;
+    }
+    .autoCompleteElement{
+        z-index: 4;
+        width: 670px;
+        position: relative;
+        /* bottom:20px; */
+        background: #fff;
+        box-shadow: 0 9px 8px -3px rgb(64 60 67 / 24%), 8px 0 8px -7px rgb(64 60 67 / 24%), -8px 0 8px -7px rgb(64 60 67 / 24%);
+        display: flex;
+        flex-direction: column;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0 0 24px 24px;
+        padding-bottom: 4px;
+        overflow: hidden;
+    }
     .mainnav{
     display: grid;
     place-items: center;
