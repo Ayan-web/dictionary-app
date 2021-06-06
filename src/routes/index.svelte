@@ -3,6 +3,8 @@
     let autoCompleteData=[]
     let autoCompleteList=[]
     let searchText='';
+    let activeElement= -1;
+    let autoCompleteElement
     function getAutoCompleteDate(data, word){
         return Promise.resolve().then(()=>{
             // console.log(data[5].word)
@@ -33,8 +35,9 @@
     }
     
     async function autoComplete(e){
-            if(searchText<1) {
+            if(searchText.length<1) {
                 autoCompleteList=[]
+                activeElement=-1;
                 return
             }
             autoCompleteList = await getAutoCompleteDate(autoCompleteData, searchText)  
@@ -49,7 +52,7 @@
                 autoCompleteList = await getAutoCompleteDate(autoCompleteData,searchText)
                 // console.log(autoCompleteData)
             }
-            console.log(autoCompleteData.length)
+            // console.log(autoCompleteData.length)
     }
     async function handleSearch(e){
         if (searchText.length<=0) return
@@ -64,10 +67,41 @@
         $searchHistory = [...$searchHistory,searchText]
         // console.log($searchHistory)
     }
+    function setActive(){
+        if(!autoCompleteElement) return
+        if (activeElement >= autoCompleteElement.childNodes.length) activeElement = 0;
+        if (activeElement < 0) activeElement = (autoCompleteElement.childNodes.length - 1);
+        for(let i=0;i<autoCompleteElement.childNodes.length;i++){
+            autoCompleteElement.childNodes[i].classList.remove("itemFocus")
+        }
+        autoCompleteElement.childNodes[activeElement].classList.add("itemFocus")
+    }
+    function keyDownHandler(e){
+        if(e.keyCode===40){
+            // console.log('down')
+            activeElement++;
+            setActive()
+        }
+        else if(e.keyCode===38){
+            // console.log('up')
+            activeElement--
+            setActive()
+        }
+        else if (e.keyCode===13){
+            if (!autoCompleteElement) return
+            autoCompleteElement.childNodes[activeElement].click()
+        }
+    }
+    function elementClick(){
+        searchText = autoCompleteElement.childNodes[activeElement].innerText
+        autoCompleteList=[]
+        activeElement=-1
+        
+    }
 </script>
 <div class="mainnav">
     <div class="inputdiv">
-        <input class="transparent" type="text" bind:value={searchText} on:input={autoComplete}>
+        <input class="transparent" type="text" bind:value={searchText} on:input={autoComplete} on:keydown={keyDownHandler}>
         {#if $searchHistory.length>0}
             <button class="transparent" on:click={e=>{searchText=''}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
@@ -89,9 +123,9 @@
     </div>
 </div>
 {#if autoCompleteList.length>0}
-<div class="autoCompleteElement">
+<div class="autoCompleteElement" bind:this={autoCompleteElement}>
         {#each autoCompleteList as data}
-            <div class="autoCompleteItems">
+            <div class="autoCompleteItems" on:click={elementClick}>
                 <span>
                     <b>{data.substr(0, searchText.length)}</b>{data.substr(searchText.length)}
                 </span>
@@ -100,16 +134,19 @@
     </div>
 {/if}
 <style>
+    :global(.itemFocus){
+        background-color:cornsilk;
+    }
     .autoCompleteItems{
     border-top: 1px solid #e8eaed;
     margin: 0 14px;
     padding-bottom: 4px;
-    font-size: 19px;
+    font-size: 20px;
     }
     .autoCompleteElement{
         z-index: 4;
         width: 670px;
-        position: relative;
+        /* position relative; */
         /* bottom:20px; */
         background: #fff;
         box-shadow: 0 9px 8px -3px rgb(64 60 67 / 24%), 8px 0 8px -7px rgb(64 60 67 / 24%), -8px 0 8px -7px rgb(64 60 67 / 24%);
