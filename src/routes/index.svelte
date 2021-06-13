@@ -1,10 +1,27 @@
 <script>
+    import * as typo from 'typo-js'
+    import {onMount} from 'svelte'
     import {searchHistory } from '$lib/stores'
     let autoCompleteData=[]
     let autoCompleteList=[]
     let searchText='';
     let activeElement= -1;
     let autoCompleteElement
+    let dictionary;
+    let isCorrect=false;
+    onMount(async ()=>{
+        const adata = await fetch('static/en_US/en_US.aff')
+        const affdata = await adata.text()
+        const ddata = await fetch('static/en_US/en_US.dic')
+        const dicdata = await ddata.text()
+        dictionary = new typo("en_US",affdata,dicdata)
+        // console.log(dictionary) 
+    })
+    function spellCheck(word){
+        return Promise.resolve().then(()=>{
+            return dictionary.check(word)
+        })
+    }
     function getAutoCompleteDate(data, word){
         return Promise.resolve().then(()=>{
             // console.log(data[5].word)
@@ -40,10 +57,12 @@
                 activeElement=-1;
                 return
             }
+            isCorrect = await spellCheck(searchText)
+            console.log(isCorrect)
             autoCompleteList = await getAutoCompleteDate(autoCompleteData, searchText)  
             // console.log(autoCompleteList)
             if (autoCompleteList.length<=0){
-                console.log('get called')
+                // console.log('get called')
                 const fetchData = await fetch(`https://api.datamuse.com/words?sp=${searchText}*`)
                 const textData = await fetchData.text();
                 const jsonData = await JSON.parse(textData)
@@ -57,6 +76,10 @@
     async function handleSearch(e){
         if (searchText.length<=0) return
         searchText = searchText.trim();
+        if(!isCorrect){
+            console.log('not a word')
+            return
+        }
         if (searchText.toUpperCase() === $searchHistory[$searchHistory.length -1]?.toUpperCase()){
             return
         }
@@ -101,7 +124,7 @@
 </script>
 <div class="mainnav">
     <div class="inputdiv">
-        <input class="transparent" type="text" bind:value={searchText} on:input={autoComplete} on:keydown={keyDownHandler}>
+        <input class="transparent {isCorrect?'':'wrong'} "  type="text" bind:value={searchText} on:input={autoComplete} on:keydown={keyDownHandler}>
         {#if $searchHistory.length>0}
             <button class="transparent" on:click={e=>{searchText=''}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
@@ -136,6 +159,9 @@
 <style>
     :global(.itemFocus){
         background-color:cornsilk;
+    }
+    .wrong{
+        text-decoration: 1px wavy underline;
     }
     .autoCompleteItems{
     border-top: 1px solid #e8eaed;
