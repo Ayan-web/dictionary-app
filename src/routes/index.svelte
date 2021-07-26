@@ -17,14 +17,9 @@
         const ddata = await fetch('static/en_US/en_US.dic')
         const dicdata = await ddata.text()
         dictionary = new typo("en_US",affdata,dicdata)
-        // if($searchHistory.length>0){
-        //     searchText=$searchHistory[$searchHistory.length-1]
-        //     handleSearch()
-        // }
         
     })
     function spellCheck(word){
-        // console.log(searchText)
         return Promise.resolve().then(()=>{
             return dictionary.check(word)
         })
@@ -196,13 +191,6 @@
     :global(.itemFocus){
         background-color:cornsilk;
     }
-    /* .meaning{ */
-        /* position: static; */
-        /* position: absolute; */
-        /* position: fixed; */
-        /* z-index: -1; */
-        /* border: black 1px solid; */
-    /* } */
     .wrong{
         text-decoration: 1px wavy underline;
     }
