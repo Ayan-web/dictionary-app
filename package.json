@@ -19,6 +19,7 @@
   },
   "type": "module",
   "dependencies": {
+    "lottie-web": "^5.7.12",
     "typo-js": "^1.2.0"
   }
 }

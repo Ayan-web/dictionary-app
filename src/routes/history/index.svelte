@@ -34,5 +34,6 @@
         border-radius: 25px;
         border: 1px solid transparent;
         box-shadow: 0 2px 5px 1px rgb(64 60 67 / 16%); 
+        cursor: pointer;
     } 
 </style>

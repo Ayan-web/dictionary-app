@@ -39,9 +39,9 @@
                 </li>
                 </ul>
             </nav>
-        <main>
+        <div class="main">
             <slot></slot>
-        </main>
+        </div>
 <style>
     .logo{
         margin: 10px 10px 10px 0px ;
@@ -76,7 +76,7 @@
         font-size: 30px;
         margin: 0 10px 0px 9px;
     }
-    main{
+    .main{
         display: grid;
         place-items: center;
         margin-top: 50px;
